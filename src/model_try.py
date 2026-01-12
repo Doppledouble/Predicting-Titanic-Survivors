@@ -1,9 +1,11 @@
-from Preprocess import TitanicPreprocessor
+from src.Preprocess import TitanicPreprocessor
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 import pandas as pd
+from xgboost import XGBClassifier
+import numpy as np
 
 # Load your data
 train_data = pd.read_csv("Pre_processed_train.csv")
@@ -36,21 +38,39 @@ def train_RandForest(
 
     return model
 
+def train_GradBoost(
+        X_train : pd.DataFrame,
+        y_train : pd.Series,
+        **kwargs) -> GradientBoostingClassifier:
+    
+    model = GradientBoostingClassifier(**kwargs)
+    model.fit(X_train,y_train)
+    
+    return model
 
-Random_forest = train_RandForest(
+def train_XGBoost(
+        X_train : pd.DataFrame,
+        y_train : pd.Series,
+        **kwargs) -> GradientBoostingClassifier:
+    
+    model = XGBClassifier(**kwargs)
+    model.fit(X_train,y_train)
+    
+    return model
+
+
+model = train_XGBoost(
     X_train,
     y_train, 
-    n_estimators=100,
-    min_samples_split=5,
+    n_estimators= 100,
     random_state=42
     )
 
-
-predictions = Random_forest.predict(X_val)
+predictions = model.predict(X_val)
 print(f"Accuracy : {accuracy_score(y_val, predictions):.5f}")
 
 
-final_predictions = Random_forest.predict(test_data)
+final_predictions = model.predict(test_data)
 submission = pd.DataFrame({
      "PassengerId": test_data["PassengerId"],
      "Survived": final_predictions
@@ -59,7 +79,6 @@ submission = pd.DataFrame({
 submission.to_csv("submission.csv", index=False)
 print("submission.csv saved!")
 print(submission["Survived"].value_counts())
-
 
 ## Initialize and fit preprocessor
 # preprocessor = TitanicPreprocessor()
